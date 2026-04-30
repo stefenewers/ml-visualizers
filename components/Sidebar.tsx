@@ -14,28 +14,34 @@ interface SidebarProps { selected: string; onSelect: (id: string) => void }
 
 export default function Sidebar({ selected, onSelect }: SidebarProps) {
   return (
-    <aside style={{
-      width: 260,
-      background: '#111118',
-      borderRight: '1px solid #1e1e2e',
-      overflowY: 'auto',
-      flexShrink: 0,
-      padding: '16px 12px',
-    }}>
+    <aside
+      style={{
+        width: 260,
+        background: 'var(--surface)',
+        borderRight: '1px solid var(--border)',
+        overflowY: 'auto',
+        flexShrink: 0,
+        padding: '16px 12px',
+      }}
+    >
       {CATEGORIES.map(cat => {
         const algos = ALGORITHMS.filter(a => a.category === cat)
         if (!algos.length) return null
         return (
           <div key={cat} style={{ marginBottom: 24 }}>
-            <div style={{
-              fontFamily: 'var(--font-jetbrains), monospace',
-              fontSize: 10,
-              color: '#64748b',
-              textTransform: 'uppercase',
-              letterSpacing: '0.1em',
-              marginBottom: 8,
-              paddingLeft: 8,
-            }}>{cat}</div>
+            <div
+              style={{
+                fontFamily: 'var(--font-jetbrains), monospace',
+                fontSize: 10,
+                color: 'var(--muted)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.1em',
+                marginBottom: 8,
+                paddingLeft: 8,
+              }}
+            >
+              {cat}
+            </div>
             {algos.map(algo => {
               const active = selected === algo.id
               return (
@@ -53,27 +59,49 @@ export default function Sidebar({ selected, onSelect }: SidebarProps) {
                     cursor: 'pointer',
                     transition: 'all 0.15s',
                   }}
-                  onMouseEnter={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = 'rgba(30,30,46,0.5)' }}
-                  onMouseLeave={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
+                  onMouseEnter={e => {
+                    if (!active)
+                      (e.currentTarget as HTMLButtonElement).style.background =
+                        'rgba(100,116,139,0.08)'
+                  }}
+                  onMouseLeave={e => {
+                    if (!active)
+                      (e.currentTarget as HTMLButtonElement).style.background = 'transparent'
+                  }}
                 >
-                  <div style={{
-                    fontFamily: 'var(--font-jetbrains), monospace',
-                    fontSize: 13,
-                    color: active ? '#00e5ff' : '#e2e8f0',
-                    marginBottom: 3,
-                  }}>{algo.name}</div>
-                  <div style={{ fontFamily: 'var(--font-jetbrains), monospace', fontSize: 11, color: '#64748b', marginBottom: 4 }}>
+                  <div
+                    style={{
+                      fontFamily: 'var(--font-jetbrains), monospace',
+                      fontSize: 13,
+                      color: active ? '#00e5ff' : 'var(--text)',
+                      marginBottom: 3,
+                    }}
+                  >
+                    {algo.name}
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: 'var(--font-jetbrains), monospace',
+                      fontSize: 11,
+                      color: 'var(--muted)',
+                      marginBottom: 4,
+                    }}
+                  >
                     {algo.description}
                   </div>
-                  <span style={{
-                    padding: '1px 6px',
-                    background: active ? 'rgba(0,229,255,0.1)' : '#0a0a0f',
-                    border: `1px solid ${active ? 'rgba(0,229,255,0.2)' : '#1e1e2e'}`,
-                    borderRadius: 3,
-                    fontFamily: 'var(--font-jetbrains), monospace',
-                    fontSize: 10,
-                    color: active ? '#00e5ff' : '#64748b',
-                  }}>{algo.complexity}</span>
+                  <span
+                    style={{
+                      padding: '1px 6px',
+                      background: active ? 'rgba(0,229,255,0.1)' : 'var(--bg)',
+                      border: `1px solid ${active ? 'rgba(0,229,255,0.2)' : 'var(--border)'}`,
+                      borderRadius: 3,
+                      fontFamily: 'var(--font-jetbrains), monospace',
+                      fontSize: 10,
+                      color: active ? '#00e5ff' : 'var(--muted)',
+                    }}
+                  >
+                    {algo.complexity}
+                  </span>
                 </button>
               )
             })}

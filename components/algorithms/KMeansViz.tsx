@@ -4,6 +4,8 @@ import Controls from '../Controls'
 import TerminalLog from '../TerminalLog'
 import InsightBox from '../InsightBox'
 import type { LogEntry, Speed, Insight } from '@/lib/types'
+import ExplainerPanel from '../ExplainerPanel'
+import { EXPLAINERS } from '@/lib/explainers'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -204,12 +206,26 @@ function stepAlgorithm(prev: KState): StepResult {
 
 // ─── Canvas Drawing ───────────────────────────────────────────────────────────
 
+function getCanvasColors() {
+  const dark =
+    typeof document !== 'undefined' &&
+    document.documentElement.classList.contains('dark')
+  return {
+    bg: dark ? '#0d0d14' : '#fafaf8',
+    surface: dark ? '#111118' : '#ffffff',
+    border: dark ? '#1e1e2e' : '#e2e0d8',
+    text: dark ? '#e2e8f0' : '#1a1a2e',
+    muted: dark ? '#64748b' : '#6b7280',
+  }
+}
+
 function drawCanvas(
   ctx: CanvasRenderingContext2D,
   state: KState,
   _w: number,
   _h: number
 ): void {
+  const colors = getCanvasColors()
   // Advance animation
   state.animProgress = Math.min(1, state.animProgress + 0.04)
 
@@ -217,7 +233,7 @@ function drawCanvas(
   const H = 440
 
   // Background
-  ctx.fillStyle = '#0a0a0f'
+  ctx.fillStyle = colors.bg
   ctx.fillRect(0, 0, W, H)
 
   // Compute current centroid visual positions (lerp)
@@ -302,7 +318,7 @@ function drawCanvas(
   // Top-right labels
   ctx.save()
   ctx.font = '12px var(--font-jetbrains), monospace'
-  ctx.fillStyle = '#64748b'
+  ctx.fillStyle = colors.muted
   ctx.textAlign = 'right'
   ctx.fillText(`Iteration: ${state.iteration}`, W - 16, 24)
 
@@ -384,7 +400,7 @@ export default function KMeansViz() {
 
   const kSelector = (
     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-      <span style={{ fontFamily: 'var(--font-jetbrains), monospace', fontSize: 11, color: '#64748b' }}>
+      <span style={{ fontFamily: 'var(--font-jetbrains), monospace', fontSize: 11, color: 'var(--muted)' }}>
         K = {kValue}
       </span>
       <input
@@ -395,17 +411,17 @@ export default function KMeansViz() {
         onChange={e => handleKChange(Number(e.target.value))}
         style={{ flex: 1, accentColor: '#00e5ff', cursor: 'pointer' }}
       />
-      <span style={{ fontFamily: 'var(--font-jetbrains), monospace', fontSize: 10, color: '#1e1e2e' }}>2</span>
-      <span style={{ fontFamily: 'var(--font-jetbrains), monospace', fontSize: 10, color: '#1e1e2e' }}>5</span>
+      <span style={{ fontFamily: 'var(--font-jetbrains), monospace', fontSize: 10, color: 'var(--border)' }}>2</span>
+      <span style={{ fontFamily: 'var(--font-jetbrains), monospace', fontSize: 10, color: 'var(--border)' }}>5</span>
     </div>
   )
 
   return (
-    <div style={{ background: '#0a0a0f', minHeight: '100%' }}>
+    <div style={{ background: 'var(--bg)', minHeight: '100%' }}>
       {/* Header */}
       <div style={{ marginBottom: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-          <h2 style={{ fontFamily: 'var(--font-syne)', fontSize: 22, color: '#e2e8f0', margin: 0 }}>
+          <h2 style={{ fontFamily: 'var(--font-syne)', fontSize: 22, color: 'var(--text)', margin: 0 }}>
             K-Means Clustering
           </h2>
           <span style={{
@@ -419,26 +435,26 @@ export default function KMeansViz() {
           }}>O(nki)</span>
           <span style={{
             padding: '2px 8px',
-            background: '#111118',
-            border: '1px solid #1e1e2e',
+            background: 'var(--surface)',
+            border: '1px solid var(--border)',
             borderRadius: 4,
             fontFamily: 'var(--font-jetbrains), monospace',
             fontSize: 11,
-            color: '#64748b',
+            color: 'var(--muted)',
           }}>Unsupervised</span>
         </div>
-        <p style={{ fontFamily: 'var(--font-jetbrains), monospace', fontSize: 12, color: '#64748b', margin: 0 }}>
+        <p style={{ fontFamily: 'var(--font-jetbrains), monospace', fontSize: 12, color: 'var(--muted)', margin: 0 }}>
           Iteratively assign points to nearest centroid, then recompute centroids as cluster means
         </p>
       </div>
 
       {/* Canvas */}
       <div style={{
-        border: '1px solid #1e1e2e',
+        border: '1px solid var(--border)',
         borderRadius: 8,
         overflow: 'hidden',
         marginBottom: 16,
-        background: '#0a0a0f',
+        background: 'var(--canvas-bg)',
       }}>
         <canvas
           ref={canvasRef}
@@ -466,36 +482,7 @@ export default function KMeansViz() {
         </div>
       </div>
 
-      {/* How it works */}
-      <details style={{
-        marginTop: 16,
-        border: '1px solid #1e1e2e',
-        borderRadius: 8,
-        padding: '10px 16px',
-      }}>
-        <summary style={{
-          fontFamily: 'var(--font-jetbrains), monospace',
-          fontSize: 12,
-          color: '#64748b',
-          cursor: 'pointer',
-          userSelect: 'none',
-        }}>
-          How it works
-        </summary>
-        <p style={{
-          fontFamily: 'var(--font-jetbrains), monospace',
-          fontSize: 12,
-          color: '#94a3b8',
-          marginTop: 10,
-          lineHeight: 1.8,
-        }}>
-          K-Means assigns each point to its nearest centroid, then moves each centroid to the mean
-          of its assigned points. These two steps repeat until no points change cluster. The algorithm
-          always converges, but may find a local optimum rather than the global best clustering —
-          which is why K-Means++ initialization (choosing initial centroids that are spread far apart)
-          dramatically improves results.
-        </p>
-      </details>
+      <ExplainerPanel sections={EXPLAINERS['kmeans']} />
     </div>
   )
 }

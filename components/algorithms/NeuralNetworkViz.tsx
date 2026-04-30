@@ -4,6 +4,8 @@ import Controls from '../Controls'
 import TerminalLog from '../TerminalLog'
 import InsightBox from '../InsightBox'
 import type { LogEntry, Speed, Insight } from '@/lib/types'
+import ExplainerPanel from '../ExplainerPanel'
+import { EXPLAINERS } from '@/lib/explainers'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -231,17 +233,31 @@ function stepAlgorithm(state: NNState): StepResult {
 
 // ─── Canvas Drawing ───────────────────────────────────────────────────────────
 
+function getCanvasColors() {
+  const dark =
+    typeof document !== 'undefined' &&
+    document.documentElement.classList.contains('dark')
+  return {
+    bg: dark ? '#0d0d14' : '#fafaf8',
+    surface: dark ? '#111118' : '#ffffff',
+    border: dark ? '#1e1e2e' : '#e2e0d8',
+    text: dark ? '#e2e8f0' : '#1a1a2e',
+    muted: dark ? '#64748b' : '#6b7280',
+  }
+}
+
 function drawCanvas(
   ctx: CanvasRenderingContext2D,
   state: NNState,
   _w: number,
   _h: number
 ): void {
+  const colors = getCanvasColors()
   const W = 700
   const H = 460
 
   // Background
-  ctx.fillStyle = '#0a0a0f'
+  ctx.fillStyle = colors.bg
   ctx.fillRect(0, 0, W, H)
 
   const { phase, animStep, animProgress, a0, a1, a2, dz2: _dz2, db1, W1, W2 } = state as NNState & { dz2?: number[] }
@@ -431,7 +447,7 @@ function drawCanvas(
       ctx.save()
       ctx.beginPath()
       ctx.arc(cx, cy, NODE_R, 0, Math.PI * 2)
-      ctx.fillStyle = '#111118'
+      ctx.fillStyle = colors.surface
       ctx.fill()
       ctx.strokeStyle = config.stroke
       ctx.lineWidth = 1.5
@@ -441,7 +457,7 @@ function drawCanvas(
       // Node label
       ctx.save()
       ctx.font = '11px var(--font-jetbrains), monospace'
-      ctx.fillStyle = '#64748b'
+      ctx.fillStyle = colors.muted
       ctx.textAlign = 'center'
       ctx.textBaseline = 'middle'
       ctx.fillText(config.labels[n], cx, cy)
@@ -454,7 +470,7 @@ function drawCanvas(
     // a0 values (right of input nodes)
     ctx.save()
     ctx.font = '11px var(--font-jetbrains), monospace'
-    ctx.fillStyle = '#e2e8f0'
+    ctx.fillStyle = colors.text
     ctx.textAlign = 'left'
     ctx.textBaseline = 'middle'
     for (let i = 0; i < 3; i++) {
@@ -475,7 +491,7 @@ function drawCanvas(
       const val = a1[i]
       ctx.fillStyle = val > 0 ? '#00e5ff' : '#ef4444'
       ctx.fillText(val.toFixed(3), cx + NODE_R + 6, cy - 7)
-      ctx.fillStyle = '#64748b'
+      ctx.fillStyle = colors.muted
       ctx.fillText(val > 0 ? 'ReLU' : '0', cx + NODE_R + 6, cy + 7)
     }
     ctx.restore()
@@ -491,7 +507,7 @@ function drawCanvas(
       const [cx, cy] = NODE_POS[2][i]
       ctx.fillStyle = '#7c3aed'
       ctx.fillText(a2[i].toFixed(3), cx + NODE_R + 6, cy - 7)
-      ctx.fillStyle = '#64748b'
+      ctx.fillStyle = colors.muted
       ctx.fillText(`→ Class ${i === 0 ? 'A' : 'B'}`, cx + NODE_R + 6, cy + 7)
     }
     ctx.restore()
@@ -547,7 +563,7 @@ function drawCanvas(
   if (phase === 'idle') {
     ctx.save()
     ctx.font = '11px var(--font-jetbrains), monospace'
-    ctx.fillStyle = '#64748b'
+    ctx.fillStyle = colors.muted
     ctx.textAlign = 'left'
     ctx.textBaseline = 'top'
     ctx.fillText('Input: [0.50, 0.80, 0.30]', 12, 12)
@@ -557,7 +573,7 @@ function drawCanvas(
   // ── 6. Epoch counter (top-right) ───────────────────────────────────────────
   ctx.save()
   ctx.font = '12px var(--font-jetbrains), monospace'
-  ctx.fillStyle = '#64748b'
+  ctx.fillStyle = colors.muted
   ctx.textAlign = 'right'
   ctx.textBaseline = 'top'
   ctx.fillText(`Epoch: ${state.epoch}`, W - 16, 12)
@@ -580,7 +596,7 @@ function drawCanvas(
   // ── 8. Layer labels ────────────────────────────────────────────────────────
   ctx.save()
   ctx.font = '10px var(--font-jetbrains), monospace'
-  ctx.fillStyle = '#64748b'
+  ctx.fillStyle = colors.muted
   ctx.textAlign = 'center'
   ctx.textBaseline = 'bottom'
   const LAYER_X = [110, 330, 570]
@@ -662,11 +678,11 @@ export default function NeuralNetworkViz() {
   }, [])
 
   return (
-    <div style={{ background: '#0a0a0f', minHeight: '100%' }}>
+    <div style={{ background: 'var(--bg)', minHeight: '100%' }}>
       {/* Header */}
       <div style={{ marginBottom: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-          <h2 style={{ fontFamily: 'var(--font-syne)', fontSize: 22, color: '#e2e8f0', margin: 0 }}>
+          <h2 style={{ fontFamily: 'var(--font-syne)', fontSize: 22, color: 'var(--text)', margin: 0 }}>
             Neural Network — Forward Pass + Backprop
           </h2>
           <span style={{
@@ -680,26 +696,26 @@ export default function NeuralNetworkViz() {
           }}>O(l·n·e)</span>
           <span style={{
             padding: '2px 8px',
-            background: '#111118',
-            border: '1px solid #1e1e2e',
+            background: 'var(--surface)',
+            border: '1px solid var(--border)',
             borderRadius: 4,
             fontFamily: 'var(--font-jetbrains), monospace',
             fontSize: 11,
-            color: '#64748b',
+            color: 'var(--muted)',
           }}>Deep Learning</span>
         </div>
-        <p style={{ fontFamily: 'var(--font-jetbrains), monospace', fontSize: 12, color: '#64748b', margin: 0 }}>
+        <p style={{ fontFamily: 'var(--font-jetbrains), monospace', fontSize: 12, color: 'var(--muted)', margin: 0 }}>
           3→4→2 network trained with gradient descent
         </p>
       </div>
 
       {/* Canvas */}
       <div style={{
-        border: '1px solid #1e1e2e',
+        border: '1px solid var(--border)',
         borderRadius: 8,
         overflow: 'hidden',
         marginBottom: 16,
-        background: '#0a0a0f',
+        background: 'var(--canvas-bg)',
       }}>
         <canvas
           ref={canvasRef}
@@ -726,37 +742,7 @@ export default function NeuralNetworkViz() {
         </div>
       </div>
 
-      {/* How it works */}
-      <details style={{
-        marginTop: 16,
-        border: '1px solid #1e1e2e',
-        borderRadius: 8,
-        padding: '10px 16px',
-      }}>
-        <summary style={{
-          fontFamily: 'var(--font-jetbrains), monospace',
-          fontSize: 12,
-          color: '#64748b',
-          cursor: 'pointer',
-          userSelect: 'none',
-        }}>
-          How it works
-        </summary>
-        <p style={{
-          fontFamily: 'var(--font-jetbrains), monospace',
-          fontSize: 12,
-          color: '#94a3b8',
-          marginTop: 10,
-          lineHeight: 1.8,
-        }}>
-          Data flows forward through layers (forward pass): each neuron computes a weighted sum of its
-          inputs, adds a bias, then applies a non-linear activation (ReLU). At the output, we compute
-          how wrong the prediction was (cross-entropy loss). Backpropagation uses the chain rule to
-          compute how much each weight contributed to the error, then nudges every weight in the
-          direction that reduces it. After many iterations, the network learns to associate inputs with
-          correct outputs.
-        </p>
-      </details>
+      <ExplainerPanel sections={EXPLAINERS['neural-network']} />
     </div>
   )
 }

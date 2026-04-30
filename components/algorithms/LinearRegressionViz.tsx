@@ -4,6 +4,8 @@ import Controls from '../Controls'
 import TerminalLog from '../TerminalLog'
 import InsightBox from '../InsightBox'
 import type { LogEntry, Speed, Insight } from '@/lib/types'
+import ExplainerPanel from '../ExplainerPanel'
+import { EXPLAINERS } from '@/lib/explainers'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -175,22 +177,36 @@ function stepAlgorithm(prev: LRState): StepResult {
 
 // ─── Canvas Drawing ───────────────────────────────────────────────────────────
 
+function getCanvasColors() {
+  const dark =
+    typeof document !== 'undefined' &&
+    document.documentElement.classList.contains('dark')
+  return {
+    bg: dark ? '#0d0d14' : '#fafaf8',
+    surface: dark ? '#111118' : '#ffffff',
+    border: dark ? '#1e1e2e' : '#e2e0d8',
+    text: dark ? '#e2e8f0' : '#1a1a2e',
+    muted: dark ? '#64748b' : '#6b7280',
+  }
+}
+
 function drawCanvas(
   ctx: CanvasRenderingContext2D,
   state: LRState,
   _w: number,
   _h: number
 ): void {
+  const colors = getCanvasColors()
   const W = 700
   const H = 440
 
   // Background
-  ctx.fillStyle = '#0a0a0f'
+  ctx.fillStyle = colors.bg
   ctx.fillRect(0, 0, W, H)
 
   // Axes
   ctx.save()
-  ctx.strokeStyle = '#1e1e2e'
+  ctx.strokeStyle = colors.border
   ctx.lineWidth = 1
   ctx.beginPath()
   // Y axis
@@ -204,7 +220,7 @@ function drawCanvas(
 
   // Axis tick marks (light)
   ctx.save()
-  ctx.strokeStyle = '#1e1e2e'
+  ctx.strokeStyle = colors.border
   ctx.lineWidth = 1
   for (let t = 0; t <= 4; t++) {
     const tx = MARGIN.left + (t / 4) * PLOT_W
@@ -305,7 +321,7 @@ function drawCanvas(
     const y = py(p.yn)
     ctx.beginPath()
     ctx.arc(x, y, 4.5, 0, Math.PI * 2)
-    ctx.fillStyle = '#e2e8f0'
+    ctx.fillStyle = colors.text
     ctx.fill()
     ctx.strokeStyle = 'rgba(100,116,139,0.5)'
     ctx.lineWidth = 1
@@ -320,14 +336,14 @@ function drawCanvas(
   const chartH = 80
 
   ctx.save()
-  ctx.fillStyle = '#111118'
+  ctx.fillStyle = colors.surface
   ctx.fillRect(chartX, chartY, chartW, chartH)
-  ctx.strokeStyle = '#1e1e2e'
+  ctx.strokeStyle = colors.border
   ctx.lineWidth = 1
   ctx.strokeRect(chartX, chartY, chartW, chartH)
 
   // Loss label
-  ctx.fillStyle = '#64748b'
+  ctx.fillStyle = colors.muted
   ctx.font = '10px var(--font-jetbrains), monospace'
   ctx.textAlign = 'left'
   ctx.fillText('loss', chartX + 4, chartY + 12)
@@ -358,7 +374,7 @@ function drawCanvas(
   ctx.font = '12px var(--font-jetbrains), monospace'
 
   // Top-left: Epoch
-  ctx.fillStyle = '#64748b'
+  ctx.fillStyle = colors.muted
   ctx.textAlign = 'left'
   ctx.fillText(`Epoch: ${state.epoch}`, MARGIN.left + 8, MARGIN.top + 16)
 
@@ -436,11 +452,11 @@ export default function LinearRegressionViz() {
   }, [])
 
   return (
-    <div style={{ background: '#0a0a0f', minHeight: '100%' }}>
+    <div style={{ background: 'var(--bg)', minHeight: '100%' }}>
       {/* Header */}
       <div style={{ marginBottom: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-          <h2 style={{ fontFamily: 'var(--font-syne)', fontSize: 22, color: '#e2e8f0', margin: 0 }}>
+          <h2 style={{ fontFamily: 'var(--font-syne)', fontSize: 22, color: 'var(--text)', margin: 0 }}>
             Linear Regression
           </h2>
           <span style={{
@@ -454,26 +470,26 @@ export default function LinearRegressionViz() {
           }}>O(n·e)</span>
           <span style={{
             padding: '2px 8px',
-            background: '#111118',
-            border: '1px solid #1e1e2e',
+            background: 'var(--surface)',
+            border: '1px solid var(--border)',
             borderRadius: 4,
             fontFamily: 'var(--font-jetbrains), monospace',
             fontSize: 11,
-            color: '#64748b',
+            color: 'var(--muted)',
           }}>Supervised</span>
         </div>
-        <p style={{ fontFamily: 'var(--font-jetbrains), monospace', fontSize: 12, color: '#64748b', margin: 0 }}>
+        <p style={{ fontFamily: 'var(--font-jetbrains), monospace', fontSize: 12, color: 'var(--muted)', margin: 0 }}>
           Gradient descent minimizes MSE loss to fit a line through noisy data
         </p>
       </div>
 
       {/* Canvas */}
       <div style={{
-        border: '1px solid #1e1e2e',
+        border: '1px solid var(--border)',
         borderRadius: 8,
         overflow: 'hidden',
         marginBottom: 16,
-        background: '#0a0a0f',
+        background: 'var(--canvas-bg)',
       }}>
         <canvas
           ref={canvasRef}
@@ -500,36 +516,7 @@ export default function LinearRegressionViz() {
         </div>
       </div>
 
-      {/* How it works */}
-      <details style={{
-        marginTop: 16,
-        border: '1px solid #1e1e2e',
-        borderRadius: 8,
-        padding: '10px 16px',
-      }}>
-        <summary style={{
-          fontFamily: 'var(--font-jetbrains), monospace',
-          fontSize: 12,
-          color: '#64748b',
-          cursor: 'pointer',
-          userSelect: 'none',
-        }}>
-          How it works
-        </summary>
-        <p style={{
-          fontFamily: 'var(--font-jetbrains), monospace',
-          fontSize: 12,
-          color: '#94a3b8',
-          marginTop: 10,
-          lineHeight: 1.8,
-        }}>
-          Gradient descent adjusts the slope (m) and intercept (b) of the line by computing how
-          much each parameter contributes to the prediction error. The gradient of the MSE loss
-          tells us the direction of steepest increase — we move opposite to it. After enough
-          iterations, the line converges to the least-squares solution — the same result you&apos;d
-          get from the closed-form normal equations, but computed iteratively.
-        </p>
-      </details>
+      <ExplainerPanel sections={EXPLAINERS['linear-regression']} />
     </div>
   )
 }

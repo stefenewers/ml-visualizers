@@ -4,6 +4,8 @@ import Controls from '../Controls'
 import TerminalLog from '../TerminalLog'
 import InsightBox from '../InsightBox'
 import type { LogEntry, Speed, Insight } from '@/lib/types'
+import ExplainerPanel from '../ExplainerPanel'
+import { EXPLAINERS } from '@/lib/explainers'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -367,17 +369,31 @@ function stepAlgorithm(prev: DTState): StepResult {
 
 // ─── Canvas Drawing ───────────────────────────────────────────────────────────
 
+function getCanvasColors() {
+  const dark =
+    typeof document !== 'undefined' &&
+    document.documentElement.classList.contains('dark')
+  return {
+    bg: dark ? '#0d0d14' : '#fafaf8',
+    surface: dark ? '#111118' : '#ffffff',
+    border: dark ? '#1e1e2e' : '#e2e0d8',
+    text: dark ? '#e2e8f0' : '#1a1a2e',
+    muted: dark ? '#64748b' : '#6b7280',
+  }
+}
+
 function drawCanvas(
   ctx: CanvasRenderingContext2D,
   state: DTState,
   _w: number,
   _h: number
 ): void {
+  const colors = getCanvasColors()
   const W = CANVAS_W
   const H = CANVAS_H
 
   // 1. Background
-  ctx.fillStyle = '#0a0a0f'
+  ctx.fillStyle = colors.bg
   ctx.fillRect(0, 0, W, H)
 
   // 2. Region shading
@@ -451,7 +467,7 @@ function drawCanvas(
 
   // 6. Axes border
   ctx.save()
-  ctx.strokeStyle = '#1e1e2e'
+  ctx.strokeStyle = colors.border
   ctx.lineWidth = 1
   ctx.strokeRect(ML, MT, PLOT_W, PLOT_H)
   ctx.restore()
@@ -459,7 +475,7 @@ function drawCanvas(
   // 7. Top-left: "Depth: N"
   ctx.save()
   ctx.font = '12px var(--font-jetbrains), monospace'
-  ctx.fillStyle = '#64748b'
+  ctx.fillStyle = colors.muted
   ctx.textAlign = 'left'
   ctx.fillText(`Depth: ${state.depth}`, 16, 24)
   ctx.restore()
@@ -481,14 +497,14 @@ function drawCanvas(
   const treeH = 130
 
   ctx.save()
-  ctx.fillStyle = '#111118'
+  ctx.fillStyle = colors.surface
   ctx.fillRect(treeX, treeY, treeW, treeH)
-  ctx.strokeStyle = '#1e1e2e'
+  ctx.strokeStyle = colors.border
   ctx.lineWidth = 1
   ctx.strokeRect(treeX, treeY, treeW, treeH)
 
   ctx.font = '9px var(--font-jetbrains), monospace'
-  ctx.fillStyle = '#64748b'
+  ctx.fillStyle = colors.muted
   ctx.textAlign = 'left'
   ctx.fillText('decision tree', treeX + 6, treeY + 12)
 
@@ -511,7 +527,7 @@ function drawCanvas(
 
   if (state.splits.length > 5) {
     lineY += lineHeight
-    ctx.fillStyle = '#64748b'
+    ctx.fillStyle = colors.muted
     ctx.fillText('  ...', treeX + 6, lineY)
   }
 
@@ -584,11 +600,11 @@ export default function DecisionTreeViz() {
   }, [])
 
   return (
-    <div style={{ background: '#0a0a0f', minHeight: '100%' }}>
+    <div style={{ background: 'var(--bg)', minHeight: '100%' }}>
       {/* Header */}
       <div style={{ marginBottom: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-          <h2 style={{ fontFamily: 'var(--font-syne)', fontSize: 22, color: '#e2e8f0', margin: 0 }}>Decision Tree</h2>
+          <h2 style={{ fontFamily: 'var(--font-syne)', fontSize: 22, color: 'var(--text)', margin: 0 }}>Decision Tree</h2>
           <span style={{
             padding: '2px 8px',
             background: 'rgba(0,229,255,0.1)',
@@ -600,26 +616,26 @@ export default function DecisionTreeViz() {
           }}>O(n&middot;d&middot;log n)</span>
           <span style={{
             padding: '2px 8px',
-            background: '#111118',
-            border: '1px solid #1e1e2e',
+            background: 'var(--surface)',
+            border: '1px solid var(--border)',
             borderRadius: 4,
             fontFamily: 'var(--font-jetbrains), monospace',
             fontSize: 11,
-            color: '#64748b',
+            color: 'var(--muted)',
           }}>Supervised Learning</span>
         </div>
-        <p style={{ fontFamily: 'var(--font-jetbrains), monospace', fontSize: 12, color: '#64748b', margin: 0 }}>
+        <p style={{ fontFamily: 'var(--font-jetbrains), monospace', fontSize: 12, color: 'var(--muted)', margin: 0 }}>
           Recursively splits data on the feature that best separates classes
         </p>
       </div>
 
       {/* Canvas */}
       <div style={{
-        border: '1px solid #1e1e2e',
+        border: '1px solid var(--border)',
         borderRadius: 8,
         overflow: 'hidden',
         marginBottom: 16,
-        background: '#0a0a0f',
+        background: 'var(--canvas-bg)',
       }}>
         <canvas
           ref={canvasRef}
@@ -646,32 +662,7 @@ export default function DecisionTreeViz() {
         </div>
       </div>
 
-      {/* How it works */}
-      <details style={{
-        marginTop: 16,
-        border: '1px solid #1e1e2e',
-        borderRadius: 8,
-        padding: '10px 16px',
-      }}>
-        <summary style={{
-          fontFamily: 'var(--font-jetbrains), monospace',
-          fontSize: 12,
-          color: '#64748b',
-          cursor: 'pointer',
-          userSelect: 'none',
-        }}>
-          How it works
-        </summary>
-        <p style={{
-          fontFamily: 'var(--font-jetbrains), monospace',
-          fontSize: 12,
-          color: '#94a3b8',
-          marginTop: 10,
-          lineHeight: 1.8,
-        }}>
-          Decision trees split the feature space into rectangular regions by asking binary questions (is x&#x2081; &lt; 0.45?). At each step, the algorithm finds the single split that most reduces Gini impurity &mdash; a measure of class mixing. The process repeats recursively until regions are pure or a depth limit is hit. Because each split only looks locally, trees are &quot;greedy&quot; and prone to overfitting &mdash; every point can be perfectly classified by growing the tree deep enough.
-        </p>
-      </details>
+      <ExplainerPanel sections={EXPLAINERS['decision-tree']} />
     </div>
   )
 }

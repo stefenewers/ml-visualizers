@@ -19,10 +19,26 @@ export const metadata: Metadata = {
   description: 'Interactive step-by-step visualizations of core ML algorithms',
 }
 
+// Inline script runs synchronously before first paint to prevent FOUC.
+// If the user saved 'light', remove the server-rendered 'dark' class immediately.
+const themeScript = `(function(){try{var t=localStorage.getItem('ml-theme');if(t==='light')document.documentElement.classList.remove('dark');}catch(e){}})();`
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${jetbrainsMono.variable} ${syne.variable}`}>
-      <body style={{ fontFamily: 'var(--font-jetbrains), monospace', background: '#0a0a0f', color: '#e2e8f0', height: '100vh', overflow: 'hidden' }}>
+    <html lang="en" className={`dark ${jetbrainsMono.variable} ${syne.variable}`}>
+      <head>
+        {/* eslint-disable-next-line @next/next/no-sync-scripts */}
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
+      <body
+        style={{
+          fontFamily: 'var(--font-jetbrains), monospace',
+          background: 'var(--bg)',
+          color: 'var(--text)',
+          height: '100vh',
+          overflow: 'hidden',
+        }}
+      >
         {children}
       </body>
     </html>

@@ -4,6 +4,8 @@ import Controls from '../Controls'
 import TerminalLog from '../TerminalLog'
 import InsightBox from '../InsightBox'
 import type { LogEntry, Speed, Insight } from '@/lib/types'
+import ExplainerPanel from '../ExplainerPanel'
+import { EXPLAINERS } from '@/lib/explainers'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -230,13 +232,27 @@ function stepAlgorithm(state: GDState): StepResult {
 
 // ─── Canvas Drawing ───────────────────────────────────────────────────────────
 
+function getCanvasColors() {
+  const dark =
+    typeof document !== 'undefined' &&
+    document.documentElement.classList.contains('dark')
+  return {
+    bg: dark ? '#0d0d14' : '#fafaf8',
+    surface: dark ? '#111118' : '#ffffff',
+    border: dark ? '#1e1e2e' : '#e2e0d8',
+    text: dark ? '#e2e8f0' : '#1a1a2e',
+    muted: dark ? '#64748b' : '#6b7280',
+  }
+}
+
 function drawCanvas(
   ctx: CanvasRenderingContext2D,
   state: GDState,
   heatmap: ImageData | null,
 ): void {
+  const colors = getCanvasColors()
   // Background
-  ctx.fillStyle = '#0a0a0f'
+  ctx.fillStyle = colors.bg
   ctx.fillRect(0, 0, CANVAS_W, CANVAS_H)
 
   // Draw heatmap
@@ -337,7 +353,7 @@ function drawCanvas(
   const ly = PLOT_T + 8
   ctx.fillStyle = 'rgba(17,17,24,0.88)'
   ctx.fillRect(lx - 6, ly - 6, 90, 56)
-  ctx.strokeStyle = '#1e1e2e'
+  ctx.strokeStyle = colors.border
   ctx.lineWidth = 1
   ctx.strokeRect(lx - 6, ly - 6, 90, 56)
   ctx.font = '10px var(--font-jetbrains), monospace'
@@ -345,12 +361,12 @@ function drawCanvas(
   ctx.fillText('● Standard GD', lx, ly + 10)
   ctx.fillStyle = '#7c3aed'
   ctx.fillText('● Momentum', lx, ly + 26)
-  ctx.fillStyle = '#64748b'
+  ctx.fillStyle = colors.muted
   ctx.fillText(`lr = ${state.lr.toFixed(2)}`, lx, ly + 42)
 
   // Step counter and losses (top bar)
   ctx.font = '12px var(--font-jetbrains), monospace'
-  ctx.fillStyle = '#64748b'
+  ctx.fillStyle = colors.muted
   ctx.fillText(`Step: ${state.step}`, PLOT_L + 4, PLOT_T - 12)
   ctx.fillStyle = '#00e5ff'
   ctx.fillText(`GD: ${state.ballGD.loss.toFixed(3)}`, 280, PLOT_T - 12)
@@ -365,7 +381,7 @@ function drawCanvas(
   }
 
   // Plot border
-  ctx.strokeStyle = '#1e1e2e'
+  ctx.strokeStyle = colors.border
   ctx.lineWidth = 1
   ctx.strokeRect(PLOT_L, PLOT_T, PLOT_W, PLOT_H)
 }
@@ -462,7 +478,7 @@ export default function GradientDescentViz() {
       <span style={{
         fontFamily: 'var(--font-jetbrains), monospace',
         fontSize: 11,
-        color: '#64748b',
+        color: 'var(--muted)',
         minWidth: 56,
       }}>
         lr = {lrValue.toFixed(2)}
@@ -480,14 +496,14 @@ export default function GradientDescentViz() {
   )
 
   return (
-    <div style={{ background: '#0a0a0f', minHeight: '100%' }}>
+    <div style={{ background: 'var(--bg)', minHeight: '100%' }}>
       {/* Header */}
       <div style={{ marginBottom: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
           <h2 style={{
             fontFamily: 'var(--font-syne)',
             fontSize: 22,
-            color: '#e2e8f0',
+            color: 'var(--text)',
             margin: 0,
           }}>
             Gradient Descent — Loss Surface
@@ -503,18 +519,18 @@ export default function GradientDescentViz() {
           }}>O(s)</span>
           <span style={{
             padding: '2px 8px',
-            background: '#111118',
-            border: '1px solid #1e1e2e',
+            background: 'var(--surface)',
+            border: '1px solid var(--border)',
             borderRadius: 4,
             fontFamily: 'var(--font-jetbrains), monospace',
             fontSize: 11,
-            color: '#64748b',
+            color: 'var(--muted)',
           }}>Optimization</span>
         </div>
         <p style={{
           fontFamily: 'var(--font-jetbrains), monospace',
           fontSize: 12,
-          color: '#64748b',
+          color: 'var(--muted)',
           margin: 0,
         }}>
           A ball rolls downhill on a 2D loss landscape
@@ -523,11 +539,11 @@ export default function GradientDescentViz() {
 
       {/* Canvas */}
       <div style={{
-        border: '1px solid #1e1e2e',
+        border: '1px solid var(--border)',
         borderRadius: 8,
         overflow: 'hidden',
         marginBottom: 16,
-        background: '#0a0a0f',
+        background: 'var(--canvas-bg)',
       }}>
         <canvas
           ref={canvasRef}
@@ -555,36 +571,7 @@ export default function GradientDescentViz() {
         </div>
       </div>
 
-      {/* How it works */}
-      <details style={{
-        marginTop: 16,
-        border: '1px solid #1e1e2e',
-        borderRadius: 8,
-        padding: '10px 16px',
-      }}>
-        <summary style={{
-          fontFamily: 'var(--font-jetbrains), monospace',
-          fontSize: 12,
-          color: '#64748b',
-          cursor: 'pointer',
-          userSelect: 'none',
-        }}>
-          How it works
-        </summary>
-        <p style={{
-          fontFamily: 'var(--font-jetbrains), monospace',
-          fontSize: 12,
-          color: '#94a3b8',
-          marginTop: 10,
-          lineHeight: 1.8,
-        }}>
-          The loss surface is a 2D function where every point represents a set of parameters and
-          its height is the loss for those parameters. Gradient descent computes the gradient —
-          the direction of steepest ascent — then moves downhill. Standard GD can get trapped
-          in local minima. Momentum GD accumulates velocity like a ball rolling downhill, helping
-          it escape shallow local traps and converge faster to better solutions.
-        </p>
-      </details>
+      <ExplainerPanel sections={EXPLAINERS['gradient-descent']} />
     </div>
   )
 }

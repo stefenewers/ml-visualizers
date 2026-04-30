@@ -17,23 +17,25 @@ export default function TerminalLog({ logs }: { logs: LogEntry[] }) {
   }, [logs])
 
   return (
-    <div style={{
-      background: '#0a0a0f',
-      border: '1px solid #1e1e2e',
-      borderRadius: 8,
-      padding: '12px 14px',
-      height: 200,
-      overflowY: 'auto',
-      fontFamily: 'var(--font-jetbrains), monospace',
-      fontSize: 12,
-    }}>
-      <div style={{ color: '#64748b', marginBottom: 8 }}>{'// terminal output'}</div>
+    <div
+      style={{
+        background: 'var(--bg)',
+        border: '1px solid var(--border)',
+        borderRadius: 8,
+        padding: '12px 14px',
+        height: 200,
+        overflowY: 'auto',
+        fontFamily: 'var(--font-jetbrains), monospace',
+        fontSize: 12,
+      }}
+    >
+      <div style={{ color: 'var(--muted)', marginBottom: 8 }}>{'// terminal output'}</div>
       {logs.length === 0 && (
-        <div style={{ color: '#1e1e2e' }}>Press Play or Step to begin...</div>
+        <div style={{ color: 'var(--border)' }}>Press Play or Step to begin...</div>
       )}
       {logs.map(log => (
         <div key={log.id} style={{ marginBottom: 4, lineHeight: 1.6 }}>
-          <span style={{ color: '#64748b' }}>[{String(log.step).padStart(3, '0')}]</span>{' '}
+          <span style={{ color: 'var(--muted)' }}>[{String(log.step).padStart(3, '0')}]</span>{' '}
           <span style={{ color: logColor[log.type] }}>{log.message}</span>
         </div>
       ))}
