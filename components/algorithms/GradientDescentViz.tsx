@@ -77,8 +77,8 @@ function buildHeatmap(ctx: CanvasRenderingContext2D): ImageData {
       losses.push(computeLoss(x, y))
     }
   }
-  const minL = Math.min(...losses)
-  const maxL = Math.max(...losses)
+  let minL = Infinity, maxL = -Infinity
+  for (const l of losses) { if (l < minL) minL = l; if (l > maxL) maxL = l }
   const range = maxL - minL
 
   // Second pass: map to colors
