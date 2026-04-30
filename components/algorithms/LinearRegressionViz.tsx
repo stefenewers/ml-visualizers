@@ -455,7 +455,7 @@ export default function LinearRegressionViz() {
     <div style={{ background: 'var(--bg)', minHeight: '100%' }}>
       {/* Header */}
       <div style={{ marginBottom: 16 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+        <div className="viz-header-row">
           <h2 style={{ fontFamily: 'var(--font-syne)', fontSize: 22, color: 'var(--text)', margin: 0 }}>
             Linear Regression
           </h2>
@@ -500,7 +500,7 @@ export default function LinearRegressionViz() {
       </div>
 
       {/* Bottom two-column layout */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 16 }}>
+      <div className="viz-bottom-grid">
         <TerminalLog logs={logs} />
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <Controls
