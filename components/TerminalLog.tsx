@@ -10,14 +10,16 @@ const logColor: Record<LogEntry['type'], string> = {
 }
 
 export default function TerminalLog({ logs }: { logs: LogEntry[] }) {
-  const endRef = useRef<HTMLDivElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: 'smooth' })
+    const el = containerRef.current
+    if (el) el.scrollTop = el.scrollHeight
   }, [logs])
 
   return (
     <div
+      ref={containerRef}
       style={{
         background: 'var(--bg)',
         border: '1px solid var(--border)',
@@ -39,7 +41,6 @@ export default function TerminalLog({ logs }: { logs: LogEntry[] }) {
           <span style={{ color: logColor[log.type] }}>{log.message}</span>
         </div>
       ))}
-      <div ref={endRef} />
     </div>
   )
 }
