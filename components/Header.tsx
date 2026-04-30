@@ -1,7 +1,11 @@
 'use client'
 import ThemeToggle from './ThemeToggle'
 
-export default function Header() {
+interface HeaderProps {
+  onMenuToggle?: () => void
+}
+
+export default function Header({ onMenuToggle }: HeaderProps) {
   return (
     <header
       style={{
@@ -10,10 +14,19 @@ export default function Header() {
         borderBottom: '1px solid var(--border)',
         display: 'flex',
         alignItems: 'center',
-        padding: '0 24px',
+        padding: '0 16px',
         flexShrink: 0,
+        gap: 10,
       }}
     >
+      <button className="hamburger" onClick={onMenuToggle} aria-label="Open menu">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <rect y="2" width="16" height="1.5" rx="1" fill="currentColor" />
+          <rect y="7" width="16" height="1.5" rx="1" fill="currentColor" />
+          <rect y="12" width="16" height="1.5" rx="1" fill="currentColor" />
+        </svg>
+      </button>
+
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <div
           style={{
@@ -35,8 +48,9 @@ export default function Header() {
         >
           ML Internals
         </span>
-        <span style={{ color: 'var(--border)', margin: '0 6px' }}>|</span>
+        <span className="header-subtitle" style={{ color: 'var(--border)', margin: '0 6px' }}>|</span>
         <span
+          className="header-subtitle"
           style={{
             fontFamily: 'var(--font-jetbrains), monospace',
             fontSize: 12,

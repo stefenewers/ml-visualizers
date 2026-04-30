@@ -53,14 +53,27 @@ const COMPONENTS: Record<string, React.ComponentType> = {
 
 export default function Home() {
   const [selected, setSelected] = useState('kmeans')
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const Viz = COMPONENTS[selected] ?? KMeansViz
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: 'var(--bg)' }}>
-      <Header />
+      <Header onMenuToggle={() => setSidebarOpen(o => !o)} />
+
+      {/* Overlay for mobile drawer */}
+      <div
+        className={`sidebar-overlay${sidebarOpen ? ' open' : ''}`}
+        onClick={() => setSidebarOpen(false)}
+      />
+
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        <Sidebar selected={selected} onSelect={setSelected} />
-        <main style={{ flex: 1, overflowY: 'auto', padding: 24 }}>
+        <Sidebar
+          selected={selected}
+          onSelect={setSelected}
+          isOpen={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+        />
+        <main style={{ flex: 1, overflowY: 'auto', overflowX: 'auto', padding: 24 }}>
           <Viz />
         </main>
       </div>

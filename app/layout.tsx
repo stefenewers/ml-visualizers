@@ -35,8 +35,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           fontFamily: 'var(--font-jetbrains), monospace',
           background: 'var(--bg)',
           color: 'var(--text)',
-          height: '100vh',
-          overflow: 'hidden',
         }}
       >
         {children}

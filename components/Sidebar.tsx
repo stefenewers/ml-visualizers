@@ -10,11 +10,22 @@ const ALGORITHMS = [
 
 const CATEGORIES = ['Unsupervised Learning', 'Supervised Learning', 'Deep Learning', 'Optimization']
 
-interface SidebarProps { selected: string; onSelect: (id: string) => void }
+interface SidebarProps {
+  selected: string
+  onSelect: (id: string) => void
+  isOpen?: boolean
+  onClose?: () => void
+}
 
-export default function Sidebar({ selected, onSelect }: SidebarProps) {
+export default function Sidebar({ selected, onSelect, isOpen, onClose }: SidebarProps) {
+  function handleSelect(id: string) {
+    onSelect(id)
+    onClose?.()
+  }
+
   return (
     <aside
+      className={`sidebar-drawer${isOpen ? ' open' : ''}`}
       style={{
         width: 260,
         background: 'var(--surface)',
@@ -47,7 +58,7 @@ export default function Sidebar({ selected, onSelect }: SidebarProps) {
               return (
                 <button
                   key={algo.id}
-                  onClick={() => onSelect(algo.id)}
+                  onClick={() => handleSelect(algo.id)}
                   style={{
                     width: '100%',
                     textAlign: 'left',

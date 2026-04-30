@@ -41,3 +41,49 @@ html, body {
 ::-webkit-scrollbar-track { background: var(--surface); }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+/* ── Mobile ───────────────────────────────────────────── */
+.hamburger { display: none; }
+
+@media (max-width: 767px) {
+  html, body { overflow: auto; height: auto; }
+
+  .hamburger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    cursor: pointer;
+    color: var(--text);
+    flex-shrink: 0;
+  }
+
+  .header-subtitle { display: none; }
+
+  .sidebar-drawer {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    height: 100vh !important;
+    z-index: 200;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    width: 280px !important;
+  }
+
+  .sidebar-drawer.open { transform: translateX(0); }
+
+  .sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    z-index: 199;
+    display: none;
+  }
+
+  .sidebar-overlay.open { display: block; }
+}
