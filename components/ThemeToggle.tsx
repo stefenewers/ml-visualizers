@@ -2,18 +2,21 @@
 import { useEffect, useState } from 'react'
 
 export default function ThemeToggle() {
-  const [isDark, setIsDark] = useState(true)
+  // Lazy initial state rather than a setState inside an effect: reading localStorage in
+  // an effect meant the first paint used the default theme and then re-rendered, which
+  // is both a cascading render and a visible flash.
+  const [isDark, setIsDark] = useState(() => {
+    if (typeof window === 'undefined') return true
+    try {
+      return localStorage.getItem('ml-theme') !== 'light'
+    } catch {
+      return true
+    }
+  })
 
   useEffect(() => {
-    const stored = localStorage.getItem('ml-theme')
-    const dark = stored !== 'light'
-    setIsDark(dark)
-    if (dark) {
-      document.documentElement.classList.add('dark')
-    } else {
-      document.documentElement.classList.remove('dark')
-    }
-  }, [])
+    document.documentElement.classList.toggle('dark', isDark)
+  }, [isDark])
 
   const toggle = () => {
     const next = !isDark

@@ -259,10 +259,10 @@ function drawCanvas(
   // Regression line — clip to plot area
   const yAt0 = m * 0 + b
   const yAt1 = m * 1 + b
-  let x0c = px(0)
-  let y0c = py(yAt0)
-  let x1c = px(1)
-  let y1c = py(yAt1)
+  const x0c = px(0)
+  const y0c = py(yAt0)
+  const x1c = px(1)
+  const y1c = py(yAt1)
 
   // Clip to plot bounds
   const plotLeft = MARGIN.left
